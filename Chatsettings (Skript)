@@ -1,0 +1,92 @@
+
+options:
+    tag: &8&l[&bChat&8&l]
+    ptag: &8&l[&cPunishment&8&l]
+
+command /cs:
+    permission: chatsettings.use
+    permission message: &c&lSorry, &7You do not have the correct permission to use this command!
+    trigger:
+        open chest with 2 row named "&3&m-----&bChat Settings &3&m-----" to player
+        format slot 0 of player with map named "&cClear Chat" to close then run "chat clear"
+        format slot 2 of player with redstone block named "&cDisable Chat" to close then run "chat disable"
+        format slot 4 of player with block of emerald named "&aEnable Chat" to close then run "chat enable"
+        format slot 6 of player with soul sand named "&7Slow Chat" to close then run "chat slow"
+        format slot 8 of player with ice named "&7Speed up Chat" to close then run "chat fast"
+        format slot 12 of player with block of emerald named "&aEnable swearing" to close then run "chat swearing enable"
+        format slot 14 of player with redstone block named "&cDisable swearing" to close then run "chat swearing disable"
+
+
+
+command /chat [<text>] [<text>]:
+    permission: chatsettings.use
+    permission message: "&c&lSorry, &7You do not have the correct permission to use this command!"
+    trigger:
+        if arg-1 is "clear":
+            loop 100 times:
+                broadcast ""
+            broadcast "{@tag} &7The chat has been cleared!"
+
+        if arg-1 is "disable":
+            set {chat} to "disable"
+            broadcast "{@tag} &7The chat has been &cdisabled&7!"
+        if arg-1 is "enable":
+            set {chat} to "enable"
+            broadcast "{@tag} &7The chat has been &aEnabled&7!"
+        if arg-1 is "slow":
+            set {chat} to "slow"
+            broadcast "{@tag} &7The chat has been &cSlowed&7!"
+        if arg-1 is "fast":
+            set {chat} to "fast"
+            broadcast "{@tag} &7The chat has been set back to &aNormal &7speed!"
+        if arg-1 is "swearing":
+            if arg-2 is "enable":
+                set {swearing} to "enable"
+                broadcast "{@tag} &cSwearing &7is now enabled!"
+            if arg-2 is "disable":
+                set {swearing} to "disable"
+                broadcast "{@tag} &cSwearing &7is now disabled!"
+       
+
+on chat:
+    if player does not have permission "chat.bypass":
+        if {chat} is "disable":
+            cancel event
+            send "{@tag} &7You do not have permission to talk in chat!"
+    if {chat} is "enable":
+        uncancel event
+    if {chat} is "slow":
+        if player does not have permission "chat.bypass":
+            wait 3 seconds
+    if {swearing} is "disable":
+        loop {swearlist::*}:
+            if "%message%" contains "%loop-value%":
+                if player does not have permission "chat.bypass":
+                    cancel event
+                    kick the player due to "{@ptag} &cSwearing &7is not allowed on this server!"
+
+command /swear [<text>] [<text>]:
+    permission: swear.add
+    permission message: &cYou do not have the correct permissions to use this command!
+    trigger:
+        if arg-1 is "add":
+            if arg-2 is set:
+                add arg-2 to {swearlist::*}
+                send "{@tag} &c%arg 2% &7has been added to the swear list!" to the player
+        if arg-1 is "remove":
+            if arg-2 is set:
+                remove arg-2 from {swearlist::*}
+                send "{@tag} &c%arg 2% &7has been removed from the swear list!" to the player
+        if arg-1 is "print":
+            if arg-2 is "list":
+                send "{@tag} &7Here are the current blocked words!" to the player
+                loop {swearlist::*}:
+                    send "&c- &7%loop-value%" to player
+
+command /help chatsettings:
+    trigger:
+        send "&3&m----- &bChat Settings &3&m-----" to player
+        send "                               " to player
+        send "&6/cs &e-Opens the settings gui" to player
+        send "                               " to player
+        send "&3&m-- &bCreated by _DevBot_ &3&m---" to player
